@@ -1,2 +1,9 @@
 *.zip
 *.7z
+
+# Visual Studio specific
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
