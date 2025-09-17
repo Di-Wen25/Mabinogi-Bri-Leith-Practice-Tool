@@ -1,0 +1,131 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>布本練習器</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Noto Sans TC', Arial, sans-serif; }
+        canvas { display: block; }
+        .ui-panel { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            background: #666; 
+            width: 300px; 
+            max-height: 100vh; 
+            overflow-y: auto; 
+            transition: width 0.3s ease; 
+            color: white; 
+            z-index: 10; 
+            scrollbar-width: thin; 
+            scrollbar-color: black #666; 
+        }
+        .ui-panel::-webkit-scrollbar { width: 8px; }
+        .ui-panel::-webkit-scrollbar-track { background: #666; }
+        .ui-panel::-webkit-scrollbar-thumb { background: black; border-radius: 4px; }
+        .ui-panel::-webkit-scrollbar-thumb:hover { background: #333; }
+        .ui-panel.collapsed { width: 40px; }
+        .ui-panel.collapsed .panel-content { display: none; }
+        .ui-panel:hover { opacity: 1; }
+        .panel-content { padding: 10px; }
+        .toggle-button { 
+            width: 30px; height: 30px; background: #0064c8; color: white; 
+            border: none; border-radius: 4px; cursor: pointer; margin: 5px; 
+            text-align: center; line-height: 30px; font-size: 16px; 
+        }
+        .toggle-button:hover { background: #0080ff; }
+        .section-header { 
+            font-size: 16px; font-weight: bold; margin: 10px 0 5px; 
+            border-bottom: 1px solid #888; 
+        }
+        .slider-label { 
+            font-size: 14px; margin: 5px 0; display: flex; 
+            justify-content: space-between; 
+        }
+        .slider { 
+            width: 100%; margin: 5px 0 10px; background: #333; 
+            border-radius: 5px; height: 8px; -webkit-appearance: none; outline: none; 
+        }
+        .slider::-webkit-slider-thumb { 
+            -webkit-appearance: none; width: 16px; height: 16px; 
+            background: #0064c8; border-radius: 50%; cursor: pointer; 
+        }
+        .slider::-webkit-slider-thumb:hover { background: #0080ff; }
+        .color-picker { 
+            width: 30px; height: 30px; border: none; cursor: pointer; margin-left: 10px; 
+        }
+        .button { 
+            padding: 8px; background: #0064c8; color: white; border: none; 
+            border-radius: 4px; cursor: pointer; width: 100%; margin: 5px 0; 
+            text-align: center; 
+        }
+        .button:hover { background: #0080ff; }
+        .mode-tabs { display: flex; margin: 5px 0 10px; }
+        .mode-button { 
+            flex: 1; padding: 8px; background: #333; color: white; 
+            border: 1px solid #555; cursor: pointer; 
+        }
+        .mode-button.active { background: #555; font-weight: bold; }
+        .heart-button {
+            position: relative; width: 30px; height: 30px; background: #ff5555;
+            transform: rotate(45deg); margin: 10px auto; transition: none;
+        }
+        .heart-button.active { background: #ff0000; }
+        .heart-button:before, .heart-button:after {
+            content: ''; position: absolute; width: 30px; height: 30px;
+            background: inherit; border-radius: 50%;
+        }
+        .heart-button:before { top: -15px; left: 0; }
+        .heart-button:after { left: -15px; top: 0; }
+    </style>
+</head>
+<body lang="zh-TW">
+    <script src="common.js"></script>
+    <script src="pizza.js"></script>
+    <script src="laser.js"></script>
+    <script src="cross_road.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
