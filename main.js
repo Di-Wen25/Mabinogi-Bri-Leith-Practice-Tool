@@ -20,9 +20,9 @@ const MODES = {
 };
 
 function updateGraphicsBuffers() {
-    const segmentSize = CONFIG.game_mode === 'laser' ? (CONFIG.laser?.laser_width || DEFAULTS.laser.laser_width) : 
-                       CONFIG.game_mode === 'cross_road' ? (CONFIG.cross_road?.cross_road_laser_width || DEFAULTS.cross_road.cross_road_laser_width) : 
-                       CONFIG.circle_radius * 2 / 3;
+    const segmentSize = CONFIG.game_mode === 'laser' ? (CONFIG.laser?.laser_width || DEFAULTS.laser.laser_width) :
+        CONFIG.game_mode === 'cross_road' ? (CONFIG.cross_road?.cross_road_laser_width || DEFAULTS.cross_road.cross_road_laser_width) :
+            CONFIG.circle_radius * 2 / 3;
     rowLaserSurf = createGraphics(CONFIG.circle_radius * 2, segmentSize);
     colLaserSurf = createGraphics(segmentSize, CONFIG.circle_radius * 2);
     radialLaserSurf = createGraphics(CONFIG.circle_radius + (CONFIG.cross_road?.cross_road_laser_width || DEFAULTS.cross_road.cross_road_laser_width), segmentSize);
@@ -30,7 +30,7 @@ function updateGraphicsBuffers() {
 }
 
 function setup() {
-	
+
     loadConfig();
     createCanvas(windowWidth, windowHeight);
     CONFIG.window_width = windowWidth;
@@ -82,7 +82,7 @@ function resetGameState() {
     bossAngle = 0;
     skillActive = false;
     playerPos = createVector(windowWidth / 2, windowHeight / 2);
-	
+
 }
 
 function isPlayerInCircle(pos) {
@@ -103,27 +103,20 @@ function getPlayerArea() {
 function keyPressed() {
     if (gameState === 'active' && key === CONFIG.global.skill_key) {
         skillActive = !skillActive;
-        targetPos = null; 
+        targetPos = null;
         skillStartPos = skillActive ? playerPos.copy() : null;
     }
 }
-
 function movePlayer(dt) {
     let direction = createVector(0, 0);
     let speed = skillActive ? CONFIG.global.skill_speed : CONFIG.global.player_speed;
-    if (!skillActive) {
-        if (keyIsDown(87)) direction.y -= 1; // W
-        if (keyIsDown(83)) direction.y += 1; // S
-        if (keyIsDown(65)) direction.x -= 1; // A
-        if (keyIsDown(68)) direction.x += 1; // D
-    }
-    if (targetPos && (skillActive ? skillStartPos : true)) {
+
+    // Skill move takes full priority
+    if (skillActive && targetPos && skillStartPos) {
         let mouseTarget = targetPos.copy();
-        if (skillActive && skillStartPos) {
-            let dirToTarget = p5.Vector.sub(mouseTarget, skillStartPos);
-            if (dirToTarget.mag() > CONFIG.global.skill_radius) {
-                mouseTarget = skillStartPos.copy().add(dirToTarget.normalize().mult(CONFIG.global.skill_radius));
-            }
+        let dirToTarget = p5.Vector.sub(mouseTarget, skillStartPos);
+        if (dirToTarget.mag() > CONFIG.global.skill_radius) {
+            mouseTarget = skillStartPos.copy().add(dirToTarget.normalize().mult(CONFIG.global.skill_radius));
         }
         if (!isPlayerInCircle(mouseTarget)) {
             const center = createVector(CONFIG.window_width / 2, CONFIG.window_height / 2);
@@ -132,18 +125,47 @@ function movePlayer(dt) {
         }
         const directionToTarget = p5.Vector.sub(mouseTarget, playerPos);
         const distanceToTarget = directionToTarget.mag();
+
+        // Use slower speed when close to target for smooth stop
+        if (distanceToTarget < 20) {
+            speed = CONFIG.global.player_speed;
+        }
+
         if (distanceToTarget > 5) {
-            direction.add(directionToTarget.normalize());
+            direction = directionToTarget.normalize();
         } else {
+            // Skill move finished
             targetPos = null;
-            if (skillActive) {
-                skillActive = false;
-                skillStartPos = null;
+            skillActive = false;
+            skillStartPos = null;
+        }
+    } else if (!skillActive) {
+        // Only use keyboard if skill is not active
+        if (keyIsDown(87)) direction.y -= 1; // W
+        if (keyIsDown(83)) direction.y += 1; // S
+        if (keyIsDown(65)) direction.x -= 1; // A
+        if (keyIsDown(68)) direction.x += 1; // D
+        if (targetPos) {
+            let mouseTarget = targetPos.copy();
+            if (!isPlayerInCircle(mouseTarget)) {
+                const center = createVector(CONFIG.window_width / 2, CONFIG.window_height / 2);
+                const dirToTarget = p5.Vector.sub(mouseTarget, center);
+                mouseTarget = p5.Vector.add(center, dirToTarget.normalize().mult(CONFIG.circle_radius));
+            }
+            const directionToTarget = p5.Vector.sub(mouseTarget, playerPos);
+            const distanceToTarget = directionToTarget.mag();
+            if (distanceToTarget > 5) {
+                direction = directionToTarget.normalize();
+            } else {
+                targetPos = null;
             }
         }
+        if (direction.mag() > 0) {
+            direction = direction.normalize();
+        }
     }
+
     if (direction.mag() > 0) {
-        direction = direction.normalize();
         const newPos = p5.Vector.add(playerPos, direction.mult(speed * dt));
         if (isPlayerInCircle(newPos)) {
             playerPos = newPos;

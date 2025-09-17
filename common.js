@@ -209,14 +209,14 @@ class DamageManager {
                         if (!damage.reached_full_alpha) {
                             damage.reached_full_alpha = true;
                             damage.damage_start_time = damage.time;
-							if (!damage.persistent) {
+                            if (!damage.persistent) {
                                 damage.damage_end_time = damage.time + config.damage_duration;
                             }
                         }
                     }
                     if (damage.damage_end_time && damage.time >= damage.damage_end_time && !damage.post_damage) {
                         damage.post_damage = true;
-						
+
                         if (CONFIG.game_mode === 'laser' && gameState !== 'dead' && !damage.caused_dodge) {
                             dodgeCount++;
                             damage.caused_dodge = true;
@@ -292,7 +292,7 @@ class DamageManager {
                             damage.damage_start_time = damage.time;
                             if (!damage.persistent) {
                                 damage.damage_end_time = damage.time + config.damage_duration;
-                            } 
+                            }
                         }
                     }
                     if (damage.damage_end_time && damage.time >= damage.damage_end_time && !damage.post_damage) {
@@ -302,7 +302,7 @@ class DamageManager {
                 },
                 isColliding: (damage, playerPos, config) => {
                     //if (!damage.reached_full_alpha)
-						return false;
+                    return false;
                     //return playerPos.dist(damage.position) < (damage.size / 2) + config.player_size;
                 },
                 draw: (damage, config) => {
@@ -333,9 +333,9 @@ class DamageManager {
                         if (!damage.reached_full_alpha) {
                             damage.reached_full_alpha = true;
                             damage.damage_start_time = damage.time;
-							if (!damage.persistent) {
+                            if (!damage.persistent) {
                                 damage.damage_end_time = damage.time + config.damage_duration;
-                            } 
+                            }
                         }
                     }
                     if (damage.damage_end_time && damage.time >= damage.damage_end_time && !damage.post_damage) {
@@ -469,15 +469,15 @@ class UIManager {
                 this.updateUI();
             }
         };
-		panelContent.appendChild(heartButton);
+        panelContent.appendChild(heartButton);
 
 
-		
+
         this.sliderElements.push({ button: heartButton, key: 'heart-debug' });
-		
-		
-	
-		
+
+
+
+
         const modeTabs = document.createElement('div');
         modeTabs.className = 'mode-tabs';
         const modes = ['pizza', 'laser', 'cross_road'];
@@ -503,11 +503,11 @@ class UIManager {
         });
         panelContent.appendChild(modeTabs);
 
-		const texttip = document.createElement('div');
-		texttip.className  = 'section-header';
-		texttip.innerHTML = `<span>按 [${CONFIG.global.skill_key}] 鎖鏈跳  滑鼠滾輪縮放 </span>`;   
+        const texttip = document.createElement('div');
+        texttip.className = 'section-header';
+        texttip.innerHTML = `<span>按 [${CONFIG.global.skill_key}] 鎖鏈跳  滑鼠滾輪縮放 </span>`;
         panelContent.appendChild(texttip);
-		
+
 
 
         const sections = {
